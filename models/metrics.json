@@ -1,0 +1,90 @@
+{
+  "selected": "Explainable Boosting Machine (EBM)",
+  "cv_5x3_train_split": {
+    "Explainable Boosting Machine (EBM)": {
+      "accuracy": 0.996875,
+      "precision": 1.0,
+      "recall": 0.9949999999999999,
+      "f1": 0.9974683544303797,
+      "roc_auc": 0.9999305555555557,
+      "accuracy_std": 0.0062499999999999995,
+      "precision_std": 0.0,
+      "recall_std": 0.010000000000000009,
+      "f1_std": 0.005063291139240489,
+      "roc_auc_std": 0.0002598373185259534
+    },
+    "CatBoost": {
+      "accuracy": 0.99375,
+      "precision": 0.995081300813008,
+      "recall": 0.9949999999999999,
+      "f1": 0.9949994790852738,
+      "roc_auc": 0.9994444444444444,
+      "accuracy_std": 0.009547032697824667,
+      "precision_std": 0.009838238222565437,
+      "recall_std": 0.010000000000000009,
+      "f1_std": 0.007638564017673383,
+      "roc_auc_std": 0.0009212846639876039
+    },
+    "LightGBM": {
+      "accuracy": 0.9875,
+      "precision": 0.9934146341463415,
+      "recall": 0.9866666666666666,
+      "f1": 0.9899781215814971,
+      "roc_auc": 0.9993055555555557,
+      "accuracy_std": 0.0142064392676936,
+      "precision_std": 0.01409262298529242,
+      "recall_std": 0.012472191289246483,
+      "f1_std": 0.011302875941476956,
+      "roc_auc_std": 0.0011825962754115579
+    }
+  },
+  "holdout": {
+    "n_test": 80,
+    "accuracy": 0.9875,
+    "precision": 1.0,
+    "recall": 0.98,
+    "specificity": 1.0,
+    "f1": 0.98989898989899,
+    "roc_auc": 1.0,
+    "brier": 0.003513319463574529,
+    "tp": 49,
+    "tn": 30,
+    "fp": 0,
+    "fn": 1
+  },
+  "holdout_40pct_inputs_hidden": {
+    "frac_hidden": 0.4,
+    "accuracy": 0.975,
+    "recall": 1.0,
+    "specificity": 0.9333333333333333,
+    "fn": 0,
+    "fp": 2
+  },
+  "global_importance": {
+    "sc": 3.5136712951600293,
+    "al": 3.50572191178406,
+    "pcv": 2.4090866352908002,
+    "bgr": 2.2386456856974335,
+    "sg": 2.1842511062116876,
+    "hemo": 2.14741359642289,
+    "rbc": 1.8941852139922712,
+    "sod": 0.9717018431861147,
+    "wc": 0.7911330858874279,
+    "rc": 0.7731923069682434,
+    "bu": 0.5794371096431313,
+    "pc": 0.4799865221927544,
+    "su": 0.452529589986278,
+    "age": 0.3835212120733669,
+    "pot": 0.32433456805582056
+  },
+  "n_features": 15,
+  "excluded_from_model": [
+    "bp",
+    "htn",
+    "dm",
+    "pe",
+    "ane",
+    "appet"
+  ],
+  "note": "Hold-out = 20% stratified split never used for training or selection. The final model is fit on training rows plus randomly-masked copies (robust to missing values); the deployed model is refit the same way on all 400 rows."
+}

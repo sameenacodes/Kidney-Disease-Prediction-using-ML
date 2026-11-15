@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block title %}History{% endblock %}
+{% block body %}
+<div class="page-head rv"><h1>Patient <span class="grad">history</span></h1><p>Every assessment is stored with its ID, inputs, result and timestamp.</p></div>
+<div class="row c4">
+  <div class="card rv"><div class="muted small">Total assessments</div><div class="kpi" data-count="{{ s.total }}">0</div></div>
+  <div class="card rv"><div class="muted small">CKD detected</div><div class="kpi" style="color:var(--bad)" data-count="{{ s.ckd }}">0</div></div>
+  <div class="card rv"><div class="muted small">No CKD detected</div><div class="kpi" style="color:var(--ok)" data-count="{{ s.nockd }}">0</div></div>
+  <div class="card rv"><div class="muted small">High risk</div><div class="kpi" style="color:var(--warn)" data-count="{{ s.high }}">0</div></div>
+</div>
+<form class="toolbar mt2 rv" method="get">
+  <input class="input" name="q" value="{{ q }}" placeholder="🔍 Search patient name or assessment ID">
+  <select class="input" name="f" style="max-width:200px" onchange="this.form.submit()">
+    {% for v,l in [('all','All results'),('ckd','CKD detected'),('nockd','No CKD detected'),('High','High risk'),('Moderate','Moderate risk'),('Low','Low risk')] %}<option value="{{ v }}" {{ 'selected' if f==v }}>{{ l }}</option>{% endfor %}
+  </select><button class="btn" type="submit">Search</button>
+</form>
+<div class="card rv"><div class="tablewrap"><table class="t"><thead><tr><th>ID</th><th>Patient</th><th>Date</th><th>Result</th><th>Risk</th><th>Prob.</th><th>eGFR / Stage</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td>#{{ r.id }}</td><td><a href="{{ url_for('patient', name=r.patient_name) }}"><b>{{ r.patient_name }}</b></a></td><td class="muted">{{ r.created_at }}</td>
+  <td>{{ r.prediction }}</td><td><span class="badge b-{{ r.risk }}">{{ r.risk }}</span></td><td>{{ r.probability|pct }}%</td>
+  <td>{% if r.egfr is not none %}{{ r.egfr }} <span class="tag">{{ r.stage }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+  <td style="white-space:nowrap"><a class="btn ghost" style="padding:7px 14px" href="{{ url_for('result', aid=r.id) }}">View</a>
+    <form method="post" action="{{ url_for('delete_assessment', aid=r.id) }}" style="display:inline" onsubmit="return confirm('Delete assessment #{{ r.id }}?')"><button class="btn danger" style="padding:7px 12px">✕</button></form></td></tr>
+{% else %}<tr><td colspan="8" class="muted" style="text-align:center;padding:40px">No assessments yet. <a href="{{ url_for('predict_page') }}" class="grad">Create the first one →</a></td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

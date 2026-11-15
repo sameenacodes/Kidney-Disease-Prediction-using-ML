@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block title %}Analytics{% endblock %}
+{% block body %}
+<div class="page-head rv"><h1><span class="grad">Analytics</span></h1><p>Summary of all stored assessments.</p></div>
+<div class="row c4">
+  <div class="card rv"><div class="muted small">Assessments</div><div class="kpi" data-count="{{ s.total }}">0</div></div>
+  <div class="card rv"><div class="muted small">Patients</div><div class="kpi" data-count="{{ s.patients }}">0</div></div>
+  <div class="card rv"><div class="muted small">Avg. CKD probability</div><div class="kpi" data-count="{{ s.avg_prob }}" data-dec="1" data-suffix="%">0</div></div>
+  <div class="card rv"><div class="muted small">Flagged for review</div><div class="kpi" style="color:var(--warn)" data-count="{{ s.review }}">0</div></div>
+</div>
+<div class="row c3 mt">
+  <div class="card rv"><h3>Risk distribution</h3><div class="chartbox"><canvas id="a1"></canvas></div><p class="small muted mt">🔴 High &nbsp;🟡 Moderate &nbsp;🟢 Low</p></div>
+  <div class="card rv"><h3>eGFR stages</h3><div class="chartbox"><canvas id="a2"></canvas></div></div>
+  <div class="card rv"><h3>Assessments per day</h3><div class="chartbox"><canvas id="a3"></canvas></div></div>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+const S = {{ s|tojson }};
+window.addEventListener('load',()=>{
+  donut('a1',[{label:'High',value:S.high,color:'#fb7185'},{label:'Moderate',value:S.moderate,color:'#fbbf24'},{label:'Low',value:S.low,color:'#34d399'}]);
+  const st=['G1','G2','G3a','G3b','G4','G5']; barChart('a2',st,st.map(x=>S.stages[x]||0),'#38bdf8');
+  const d=Object.keys(S.per_day); barChart('a3',d.map(x=>x.slice(5)),d.map(x=>S.per_day[x]),'#2dd4bf');
+});</script>{% endblock %}

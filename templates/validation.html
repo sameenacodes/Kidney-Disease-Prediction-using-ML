@@ -1,0 +1,41 @@
+{% extends "base.html" %}{% block title %}Validation{% endblock %}
+{% block body %}
+<div class="page-head rv"><h1>Model <span class="grad">validation centre</span></h1><p>Accuracy alone does not prove clinical correctness. These numbers come from data the model never saw during training, and recall (missed CKD cases) matters most for a screening aid.</p></div>
+{% if m %}
+<div class="card rv"><div class="pill">Selected model: <b>{{ m.selected }}</b> · glass-box additive boosted model (InterpretML)</div>
+<div class="row c4 mt">
+  {% for k,l in [('accuracy','Accuracy'),('precision','Precision'),('recall','Recall'),('specificity','Specificity'),('f1','F1 score'),('roc_auc','ROC-AUC')] %}
+  <div><div class="muted small">{{ l }}</div><div class="kpi" data-count="{{ (m.holdout[k]*100)|round(2) }}" data-dec="1" data-suffix="%">0</div></div>{% endfor %}
+  <div><div class="muted small">Hold-out size</div><div class="kpi" data-count="{{ m.holdout.n_test }}">0</div></div>
+  <div><div class="muted small">Missed CKD (FN)</div><div class="kpi" style="color:var(--warn)" data-count="{{ m.holdout.fn }}">0</div></div>
+</div>
+<p class="muted small mt">Hold-out = 20% stratified split of the UCI CKD dataset ({{ m.holdout.n_test }} of 400 rows), never used for training or model selection. Scores use the same path as the app (tests that were not provided are treated as neutral). The dataset is small and easily separable, so real-world performance will be lower — external validation is still needed.</p></div>
+
+<div class="card mt rv"><h3>🔬 Two honesty checks</h3>
+  <div class="row c2 mt"><div><div class="muted small">Same hold-out, but 40% of inputs randomly hidden (realistic partial reports)</div>
+    <div class="row c3 mt"><div><div class="muted small">Accuracy</div><div class="kpi" style="font-size:1.8rem">{{ (m.holdout_40pct_inputs_hidden.accuracy*100)|round(1) }}%</div></div><div><div class="muted small">Recall</div><div class="kpi" style="font-size:1.8rem">{{ (m.holdout_40pct_inputs_hidden.recall*100)|round(1) }}%</div></div><div><div class="muted small">Specificity</div><div class="kpi" style="font-size:1.8rem">{{ (m.holdout_40pct_inputs_hidden.specificity*100)|round(1) }}%</div></div></div></div>
+  <div><div class="muted small">Features deliberately <b>excluded</b> from the model</div><p class="mt small">{{ m.excluded_from_model|join(', ') }} — in the UCI data none of the 150 non-CKD patients has hypertension, diabetes, pedal edema, anemia or poor appetite, so a model fed these learns “risk factor = CKD”, which is unsafe. They are shown as clinical context instead.</p></div></div></div>
+
+<div class="row c2 mt">
+  <div class="card rv"><h3>Model comparison</h3><p class="muted small">5-fold × 3 repeats cross-validation on the training split</p>
+    <div class="tablewrap mt"><table class="t"><thead><tr><th>Model</th><th>Acc.</th><th>Recall</th><th>F1</th><th>AUC</th></tr></thead><tbody>
+    {% for n,v in m.cv_5x3_train_split.items() %}<tr><td>{{ n }}{% if n==m.selected %} <span class="tag" style="color:var(--teal)">selected</span>{% endif %}</td><td>{{ (v.accuracy*100)|round(1) }}%</td><td>{{ (v.recall*100)|round(1) }}%</td><td>{{ (v.f1*100)|round(1) }}%</td><td>{{ v.roc_auc|round(3) }}</td></tr>{% endfor %}
+    </tbody></table></div><img class="plot mt" src="{{ url_for('static', filename='plots/model_comparison.png') }}" alt="comparison"></div>
+  <div class="card rv"><h3>Confusion matrix &amp; ROC</h3><div class="row c2 mt"><img class="plot" src="{{ url_for('static', filename='plots/confusion_matrix.png') }}" alt="cm"><img class="plot" src="{{ url_for('static', filename='plots/roc_curve.png') }}" alt="roc"></div>
+    <h3 class="mt2">Global feature importance</h3><img class="plot mt" src="{{ url_for('static', filename='plots/feature_importance.png') }}" alt="fi"></div>
+</div>
+<div class="card mt rv"><h3>🧬 How each lab value moves the risk (EBM shape functions)</h3><p class="muted small">Because the EBM is additive, these curves <i>are</i> the model: a patient's score is the sum of one curve value per test. Upward = pushes towards CKD.</p>
+  <img class="plot mt" src="{{ url_for('static', filename='plots/shape_functions.png') }}" alt="shape functions">
+</div>
+{% else %}<div class="card">Run <code>python ml/train.py</code> first to generate metrics.</div>{% endif %}
+
+<div class="card mt2 rv"><h3>🧪 Test with your own labelled CSV</h3>
+<p class="muted small">Columns: the same names as the form (age, bp, sg, al, su, bgr, bu, sc, sod, pot, hemo, pcv, wc, rc, rbc, pc, htn, dm, appet, pe, ane, in UCI format) plus a label column named <code>classification</code>/<code>label</code> (ckd/notckd or 1/0). Missing columns are treated as missing values. Note: the bundled UCI file was used to fit the deployed model, so it will look optimistic — use unseen data.</p>
+<form method="post" enctype="multipart/form-data" class="toolbar mt"><input class="input" type="file" name="csv" accept=".csv" required><button class="btn" type="submit">Evaluate</button></form>
+{% if custom %}<div class="row c4 mt">
+  {% for k,l in [('accuracy','Accuracy'),('precision','Precision'),('recall','Recall'),('specificity','Specificity'),('f1','F1')] %}<div><div class="muted small">{{ l }}</div><div class="kpi">{{ (custom[k]*100)|round(1) }}%</div></div>{% endfor %}
+  <div><div class="muted small">ROC-AUC</div><div class="kpi">{{ custom.roc_auc|round(3) if custom.roc_auc is not none else 'n/a' }}</div></div>
+  <div><div class="muted small">Samples</div><div class="kpi">{{ custom.n }}</div></div>
+  <div><div class="muted small">TP / TN / FP / FN</div><div class="kpi" style="font-size:1.5rem">{{ custom.tp }} / {{ custom.tn }} / {{ custom.fp }} / {{ custom.fn }}</div></div></div>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}{% block title %}Home{% endblock %}
+{% block body %}
+<section class="hero">
+  <div>
+    <span class="pill rv">✨ <b>2.0</b> · OCR · Explainable · Progression tracking</span>
+    <h1 class="rv">Read the lab report.<br><span class="grad">Understand the kidneys.</span></h1>
+    <p class="lead rv">Upload a lab report and CKDPredict reads the values, runs a calibrated machine-learning model, explains <i>why</i> it reached its result, calculates eGFR and tracks every patient's kidney function over time.</p>
+    <div class="cta rv"><a class="btn" href="{{ url_for('predict_page') }}">⚡ Start assessment</a><a class="btn ghost" href="{{ url_for('validation') }}">📊 See model validation</a></div>
+    <svg class="ecg" viewBox="0 0 600 70"><path d="M0 38 H120 l14 -26 l16 52 l14 -40 l10 14 H300 l14 -26 l16 52 l14 -40 l10 14 H600"/></svg>
+  </div>
+  <div class="orb rv"><div class="ring"><span class="dot"></span></div><div class="ring r2"><span class="dot"></span></div><div class="ring r3"><span class="dot"></span></div><div class="core">🫘</div></div>
+</section>
+
+<div class="row c4 mt2">
+  <div class="card stat rv"><b data-count="21">0</b><span class="muted">clinical inputs collected</span></div>
+  <div class="card stat rv"><b data-count="4">0</b><span class="muted">models compared</span></div>
+  <div class="card stat rv"><b data-count="{{ s.total }}">0</b><span class="muted">assessments stored</span></div>
+  <div class="card stat rv"><b data-count="{{ s.patients }}">0</b><span class="muted">patients tracked</span></div>
+</div>
+
+<h2 class="sec-title rv">What's new in <span class="grad">2.0</span></h2>
+<div class="row c3">
+  <div class="card hover feat rv"><div class="ico">📄</div><h3>Lab-report reader (OCR)</h3><p>Upload a PDF or photo of a lab report. Values are extracted, shown for your review, and auto-filled into the form.</p></div>
+  <div class="card hover feat rv"><div class="ico">🧠</div><h3>Explainable result</h3><p>See which values pushed the prediction towards or away from CKD — not just a label.</p></div>
+  <div class="card hover feat rv"><div class="ico">📈</div><h3>Progression tracking</h3><p>Each patient's eGFR and model probability are plotted across assessments to show how kidney function changes.</p></div>
+  <div class="card hover feat rv"><div class="ico">🧮</div><h3>eGFR &amp; KDIGO staging</h3><p>CKD-EPI 2021 creatinine equation with G1–G5 staging, calculated separately from the ML model.</p></div>
+  <div class="card hover feat rv"><div class="ico">🛡️</div><h3>Safety flags</h3><p>Borderline results, missing inputs and implausible values are flagged for doctor review instead of being hidden.</p></div>
+  <div class="card hover feat rv"><div class="ico">✅</div><h3>Validation centre</h3><p>Hold-out metrics, confusion matrix, ROC and model comparison — plus upload your own labelled CSV to test.</p></div>
+</div>
+
+<h2 class="sec-title rv">How it works</h2>
+<div class="steps">
+  <div class="card step rv"><h3>Upload / enter</h3><p class="muted small">Drop a lab report or type values. Missing values are allowed.</p></div>
+  <div class="card step rv"><h3>Verify</h3><p class="muted small">Extracted values are shown in the form so you can correct them.</p></div>
+  <div class="card step rv"><h3>Predict &amp; explain</h3><p class="muted small">Calibrated model → probability, risk, eGFR stage and top factors.</p></div>
+  <div class="card step rv"><h3>Track &amp; report</h3><p class="muted small">Saved to history with trend charts and a PDF report.</p></div>
+</div>
+<div class="disc rv">⚕️ CKDPredict is a screening / decision-support aid. It assists in interpreting multiple clinical parameters together and requires professional medical confirmation. It does not replace a doctor or laboratory diagnosis.</div>
+{% endblock %}

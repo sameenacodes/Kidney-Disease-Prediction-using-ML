@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% block title %}{{ name }}{% endblock %}
+{% block body %}
+<div class="page-head rv"><span class="tag">Progression monitoring</span><h1>{{ name }}</h1><p>{{ rows|length }} assessment{{ 's' if rows|length>1 }} recorded.</p></div>
+{% if msg %}<div class="flagbox rv" style="margin:0 0 18px;border-color:rgba(45,212,191,.45);background:rgba(45,212,191,.1)">📈 {{ msg }} <span class="muted small">This describes recorded values only — it does not predict future disease.</span></div>{% endif %}
+<div class="row c2">
+  <div class="card rv"><h3>eGFR over time</h3><p class="muted small">mL/min/1.73 m² (higher is better)</p><div class="chartbox"><canvas id="c1"></canvas></div></div>
+  <div class="card rv"><h3>Model probability of CKD</h3><p class="muted small">percent</p><div class="chartbox"><canvas id="c2"></canvas></div></div>
+</div>
+<div class="card mt rv"><div class="tablewrap"><table class="t"><thead><tr><th>ID</th><th>Date</th><th>Result</th><th>Risk</th><th>eGFR</th><th>Stage</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td>#{{ r.id }}</td><td class="muted">{{ r.created_at }}</td><td>{{ r.prediction }}</td><td><span class="badge b-{{ r.risk }}">{{ r.risk }}</span></td><td>{{ r.egfr if r.egfr is not none else '—' }}</td><td>{{ r.stage or '—' }}</td><td><a class="btn ghost" style="padding:7px 14px" href="{{ url_for('result', aid=r.id) }}">View</a></td></tr>{% endfor %}
+</tbody></table></div></div>
+<div class="cta mt2"><a class="btn" href="{{ url_for('predict_page') }}">+ New assessment</a><a class="btn ghost" href="{{ url_for('history') }}">← History</a></div>
+{% endblock %}
+{% block scripts %}<script>
+const S = {{ series|tojson }}, L = S.map(s=>s.date.slice(5));
+window.addEventListener('load',()=>{ lineChart('c1',L,[{name:'eGFR',color:'#2dd4bf',data:S.map(s=>s.egfr)}]); lineChart('c2',L,[{name:'prob',color:'#f472b6',data:S.map(s=>s.prob)}]); });
+</script>{% endblock %}

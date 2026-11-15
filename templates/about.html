@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}About{% endblock %}
+{% block body %}
+<div class="page-head rv"><h1>About <span class="grad">CKDPredict 2.0</span></h1><p>A machine-learning based Clinical Decision-Support System for Chronic Kidney Disease (CKD) risk assessment — built as an academic mini project.</p></div>
+<div class="row c2">
+  <div class="card rv"><h3>How it works</h3><ol class="muted mt" style="padding-left:20px;line-height:2">
+    <li>Lab report (PDF / image) → text via PDF parsing or Tesseract OCR → value extraction with unit conversion</li><li>User verifies values → range checks reject implausible numbers</li>
+    <li>Missing tests are treated as neutral (no contribution) — “not tested” is never read as “sick”; completeness is reported</li><li>Explainable Boosting Machine → probability, CKD / No CKD, risk level (Low &lt;30%, Moderate 30–70%, High ≥70%)</li>
+    <li>Explanation: the EBM is additive, so the score is exactly intercept + one contribution per test. The bars show those contributions (no approximation).</li><li>eGFR via CKD-EPI 2021 creatinine equation and KDIGO G-stage (separate from the ML model)</li></ol></div>
+  <div class="card rv"><h3>Stack</h3><p class="muted mt">Python · Flask · scikit-learn · pandas · SQLite · pdfplumber · Tesseract OCR · OpenCV · ReportLab · HTML/CSS/JavaScript</p>
+    <h3 class="mt2">Dataset</h3><p class="muted mt">UCI Chronic Kidney Disease dataset (400 records, 24 attributes). 21 clinical inputs are collected; 15 laboratory values feed the model and 6 history/vitals items are shown as clinical context.</p>
+    {% if m %}<h3 class="mt2">Model</h3><p class="mt muted">Explainable Boosting Machine (EBM, Microsoft Research InterpretML) — a glass-box boosted additive model. Compared with CatBoost and LightGBM using repeated 5-fold cross-validation; models within noise of the best were treated as equivalent and the most interpretable one was selected. Classic CKD-project algorithms (Random Forest, XGBoost, SVM, KNN, Naive Bayes, Logistic Regression…) were deliberately not used.</p>{% endif %}</div>
+</div>
+<div class="card mt rv"><h3>Limitations (please read)</h3><ul class="muted mt" style="padding-left:20px;line-height:2"><li>Trained on only 400 records from one source; not externally validated.</li><li>In the UCI data no non-CKD patient has hypertension, diabetes, pedal edema, anemia or poor appetite, so these are <b>not</b> given to the model (it would learn “risk factor = CKD”). They are shown as clinical context only.</li><li>Probability is the model's confidence on its training distribution, not a clinical probability.</li><li>OCR can misread scans — always verify extracted values.</li><li>Prototype only: no authentication, encryption or audit logging; not for clinical use.</li></ul></div>
+<div class="disc rv">⚕️ Decision-support aid. Requires professional medical confirmation; does not replace doctors or laboratory diagnosis.</div>
+{% endblock %}

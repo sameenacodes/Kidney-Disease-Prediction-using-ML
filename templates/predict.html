@@ -1,0 +1,62 @@
+{% extends "base.html" %}{% block title %}Assess{% endblock %}
+{% block body %}
+<div class="page-head rv"><h1>New <span class="grad">assessment</span></h1><p>Upload a lab report to auto-fill the values, or enter them manually. Any value you don't have can be left empty — at least 4 are needed.</p></div>
+
+<label class="upload rv" id="drop"><span class="scan"></span>
+  <span class="big">📄</span><h3>Drop a lab report here, or click to browse</h3>
+  <p class="muted small">PDF, PNG or JPG · read on the server and never stored · you review every value before predicting</p>
+  <input type="file" id="file" accept=".pdf,.png,.jpg,.jpeg,.bmp,.tif,.tiff">
+</label>
+<div class="ocr-note" id="note"></div>
+
+<form method="post" class="mt2" id="form" autocomplete="off">
+  <input type="hidden" name="source" id="source" value="manual">
+  <div class="card rv">
+    <h3 style="margin-bottom:16px">🧑 Patient</h3>
+    <div class="fields">
+      <div class="field"><label>Patient name <em>required</em></label><input name="patient_name" id="patient_name" required maxlength="60" value="{{ form.get('patient_name','') }}" placeholder="e.g. Ravi Kumar"></div>
+      <div class="field"><label>Age <em>years</em></label><input type="number" step="1" name="age" id="age" value="{{ form.get('age','') }}" placeholder="e.g. 52"></div>
+      <div class="field"><label>Sex <em>for eGFR</em></label><select name="sex" id="sex"><option value="">—</option><option value="M" {{ 'selected' if form.get('sex')=='M' }}>Male</option><option value="F" {{ 'selected' if form.get('sex')=='F' }}>Female</option></select></div>
+    </div>
+  </div>
+  {% for title, icon, keys in groups %}
+  <div class="card fgroup rv"><h3>{{ icon }} {{ title }}</h3><div class="fields">
+    {% for k in keys %}{% set m = F[k] %}
+    <div class="field" id="f_{{ k }}">
+      <label>{{ m.label }} <em>{{ m.unit or '' }}{% if m.range %} · {{ m.range }}{% endif %}</em></label>
+      {% if m.type=='number' %}<input type="number" step="{{ step.get(k,'any') }}" name="{{ k }}" id="{{ k }}" value="{{ form.get(k,'') }}">
+      {% else %}<select name="{{ k }}" id="{{ k }}"><option value="">—</option><option value="0" {{ 'selected' if form.get(k)=='0' }}>{{ m.options[0] }}</option><option value="1" {{ 'selected' if form.get(k)=='1' }}>{{ m.options[1] }}</option></select>{% endif %}
+    </div>{% endfor %}
+  </div></div>{% endfor %}
+  <div class="cta mt"><button class="btn" type="submit">⚡ Predict &amp; explain</button><button class="btn ghost" type="reset" id="reset">Clear</button></div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+const drop=document.getElementById('drop'), file=document.getElementById('file'), note=document.getElementById('note');
+['dragenter','dragover'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('drag')}));
+['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('drag')}));
+drop.addEventListener('drop',ev=>{ if(ev.dataTransfer.files[0]){ file.files=ev.dataTransfer.files; send(); } });
+file.addEventListener('change',send);
+function show(msg,err){ note.style.display='block'; note.className='ocr-note'+(err?' err':''); note.innerHTML=msg; }
+async function send(){
+  const f=file.files[0]; if(!f) return; const fd=new FormData(); fd.append('report',f);
+  drop.classList.add('busy'); const name=f.name.replace(/</g,''); const msgs=['Reading <b>'+name+'</b> …','Enhancing the scan …','Recognising text (OCR) …','Matching lab values …']; let mi=0; show('🔍 '+msgs[0]); const tick=setInterval(()=>{ mi=Math.min(mi+1,msgs.length-1); show('🔍 '+msgs[mi]); },3000);
+  try{
+    const r=await fetch('{{ url_for("api_extract") }}',{method:'POST',body:fd}), j=await r.json();
+    if(!r.ok){ show(j.error||'Could not read the file.',true); return; }
+    let n=0, delay=0;
+    Object.entries(j.values).forEach(([k,v])=>{ const el=document.getElementById(k); if(!el) return; setTimeout(()=>{ el.value = String(v); const w=document.getElementById('f_'+k)||el.closest('.field'); if(!w) return; w.classList.remove('filled'); void w.offsetWidth; w.classList.add('filled'); }, delay); delay+=70; n++; });
+    if(j.values.age!==undefined) document.getElementById('age').value=j.values.age;
+    if(j.patient.patient_name && !document.getElementById('patient_name').value) document.getElementById('patient_name').value=j.patient.patient_name;
+    if(j.patient.sex) document.getElementById('sex').value=j.patient.sex;
+    document.getElementById('source').value='ocr';
+    let html = n ? '✅ Found <b>'+n+'</b> value(s) using <b>'+j.method+'</b>. Please check each one below before predicting.' : '⚠ No recognisable lab values were found. Try a clearer scan or enter the values manually.';
+    if(j.rejected.length) html += '<br><span class="small">Ignored implausible values: '+j.rejected.join('; ')+'</span>';
+    show(html, !n);
+    if(n) document.getElementById('form').scrollIntoView({behavior:'smooth'});
+  }catch(e){ show('Upload failed: '+e,true); } finally{ clearInterval(tick); drop.classList.remove('busy'); }
+}
+document.getElementById('reset').addEventListener('click',()=>{ note.style.display='none'; document.getElementById('source').value='manual'; });
+</script>
+{% endblock %}

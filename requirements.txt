@@ -1,0 +1,15 @@
+Flask>=3.0
+numpy
+pandas
+scikit-learn>=1.4
+interpret-core>=0.7
+catboost
+lightgbm
+joblib
+matplotlib
+pdfplumber
+pytesseract
+opencv-python-headless
+Pillow
+reportlab
+gunicorn
